@@ -41,10 +41,6 @@ def initialize_session_state():
         st.session_state.uploaded = False
     if "messages" not in st.session_state:
         st.session_state.messages = []
-    if "qa_model" not in st.session_state:
-        st.session_state.qa_model = pipeline("question-answering", model="deepset/bert-large-uncased-whole-word-masking-squad2")
-    if "embedding_model" not in st.session_state:
-        st.session_state.embedding_model = HuggingFaceEmbeddings(model_name="Alibaba-NLP/gte-base-en-v1.5", model_kwargs={"trust_remote_code": True})
 
 # Toggle the state of the uploader button and clear messages
 def toggle_uploader():
@@ -133,10 +129,20 @@ def main():
                         resume_text = extract_and_clean_text_from_pdf(uploaded_file)
                         chunks = chunk_text(resume_text)
 
+                    with st.spinner('Loading embedding model...'):
+                        # Load embedding model
+                        embedding_model = HuggingFaceEmbeddings(model_name="Alibaba-NLP/gte-base-en-v1.5", model_kwargs={"trust_remote_code": True})
+
                     with st.spinner('Storing embeddings...'):
                         # Store embeddings
-                        db = FAISS.from_texts(chunks, st.session_state.embedding_model)
+                        db = FAISS.from_texts(chunks, embedding_model)
                         st.session_state.db = db  # Store the embeddings in session state
+                
+                if "qa_model" not in st.session_state:
+                    with st.spinner('Loading QA model...'):
+                        # Load QA model
+                        QA_model = pipeline("question-answering", model="deepset/bert-large-uncased-whole-word-masking-squad2")
+                        st.session_state.qa_model = QA_model  # Store the QA model in session state
                 
                 st.success('Ready to answer questions from the resume!')
             
