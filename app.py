@@ -33,7 +33,7 @@ download_nltk_resources()
 STOPWORDS = set(stopwords.words('english'))
 
 # Set up the Streamlit page configuration
-st.set_page_config(page_icon='📑', page_title="Resume QnA Bot")
+st.set_page_config(page_icon='📑', page_title="PDF QnA Bot")
 
 # Initialize or update session state variables
 def initialize_session_state():
@@ -115,19 +115,19 @@ def preprocess_query(text):
 # Main function to run the Streamlit app
 def main():
     initialize_session_state()
-    st.title("Resume Question-Answering App📃")
+    st.title("PDF Question-Answering App📃")
 
     with st.sidebar:
-        uploaded_file = st.file_uploader("Upload a resume (PDF)", type=["pdf"], disabled=st.session_state.uploaded, on_change=toggle_uploader)
+        uploaded_file = st.file_uploader("Upload a PDF", type=["pdf"], disabled=st.session_state.uploaded, on_change=toggle_uploader)
 
         # Define a button to start the chat which loads models, processes text, etc.
         if st.button("Start Chat"):
             if uploaded_file:
                 if "db" not in st.session_state:
-                    with st.spinner('Processing resume...'):
+                    with st.spinner('Processing PDF...'):
                         # Extract, clean, and chunk text from PDF
-                        resume_text = extract_and_clean_text_from_pdf(uploaded_file)
-                        chunks = chunk_text(resume_text)
+                        PDF_text = extract_and_clean_text_from_pdf(uploaded_file)
+                        chunks = chunk_text(PDF_text)
 
                     with st.spinner('Loading embedding model...'):
                         # Load embedding model
@@ -144,10 +144,10 @@ def main():
                         QA_model = pipeline("question-answering", model="deepset/bert-large-uncased-whole-word-masking-squad2")
                         st.session_state.qa_model = QA_model  # Store the QA model in session state
                 
-                st.success('Ready to answer questions from the resume!')
+                st.success('Ready to answer questions from the PDF!')
             
             else:
-                st.error('Please upload a resume PDF to start the chat.')
+                st.error('Please upload a PDF to start the chat.')
 
     # Display chat history
     if st.session_state.messages:
@@ -157,7 +157,7 @@ def main():
 
     if 'db' in st.session_state and 'qa_model' in st.session_state:
         # Accept user query input
-        if prompt := st.chat_input("Ask a question about the resume..."):
+        if prompt := st.chat_input("Ask a question about the PDF..."):
             # Preprocessing on user's query
             with st.spinner("Processing your question..."):
                 cleaned_prompt = preprocess_query(prompt)
